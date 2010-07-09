@@ -547,7 +547,6 @@ class ADT {
 			{
 				$OFFVALUE = "0x".$this->EndianConverter($this->STRUCT_INFO["MH2O_Offset"]);
 				$NumWater = 256;
-				$this->WATER_DATAZ_BLOCK = array(array());
 
 				for($x = 0;$x < $NumWater;$x++):
 				if($this->WATER_DATAZ[$x][WATER_OFFSET][1] == 0){
@@ -560,10 +559,10 @@ class ADT {
 				fread($this->ADT_Handle,0x4);
 				$Height_Level = bin2hex(fread($this->ADT_Handle,4));
 				fseek($this->ADT_Handle,-4,SEEK_CUR);
-				fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) + $Level),4); // Ocean		
+				fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) + $Level),4);			//Ocean	
 				$Height_Level = bin2hex(fread($this->ADT_Handle,4));
 				fseek($this->ADT_Handle,-4,SEEK_CUR);
-				fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) + $Level),4); // Ocean		
+				fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) + $Level),4);			//Ocean
 				//HeightLevel
 				$Byte_Data = bin2hex(fread($this->ADT_Handle,1));	
 				$xOffset =  hexdec($this->EndianConverter($Byte_Data));
@@ -582,17 +581,17 @@ class ADT {
 				//Parte wapah
 				$Total_Floats = $widht*$height;
 				for($i = 0;$i<$Total_Floats;$i++){
-				//Write block
+
 				$Height_Level = bin2hex(fread($this->ADT_Handle,4));
 				fseek($this->ADT_Handle,-4,SEEK_CUR);
 				fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) + $Level),4);
-				fseek($this->ADT_Handle,-4,SEEK_CUR);
-				//end Write block				
+
+			
 				}
 				
 				}
 				endfor;
-				return $this->WATER_DATAZ_BLOCK;
+
 			}
 			//===================================
 			//ADT Draw MH2O 
@@ -903,8 +902,5 @@ class ADT {
 			}
 }
 
-$MyADT = new ADT();
-$MyADT->ADT_Open("Azeroth_32_48 - copia.adt");
-$MyADT->ADT_HeaderInfo();
 
 ?>
