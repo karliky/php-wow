@@ -906,9 +906,5 @@ class ADT {
 $MyADT = new ADT();
 $MyADT->ADT_Open("Azeroth_32_48 - copia.adt");
 $MyADT->ADT_HeaderInfo();
-if(isset($_GET['chunk'])){
-$MyADT->ADT_Make_Goatse($_GET['chunk']);
-}else{
-echo $MyADT->ADT_Show_Goatse();
-}
+
 ?>
