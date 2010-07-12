@@ -36,6 +36,8 @@ class ADT {
 	var $WATER_DATAZ_BLOCK;
 	var $MCIN_DATA;
 	var $GOATSE_DATA;
+	var $NEW_OFFSETS_TYPE;
+	var $NEW_OFFSETS;
 	
 		function ADT(){
 			//Constructor
@@ -112,7 +114,7 @@ class ADT {
 				$this->STRUCT_INFO["MFBO_Offset"] = bin2hex(fread($this->ADT_Handle,4));
 				$this->STRUCT_INFO["MH2O_Offset"] = bin2hex(fread($this->ADT_Handle,4));
 				$this->STRUCT_INFO["MTFX_Offset"] = bin2hex(fread($this->ADT_Handle,4));
-
+                                $this->p_array($this->STRUCT_INFO);
 		}
 		
 		//////////////////////////////////////////////
@@ -900,7 +902,48 @@ class ADT {
 				$Goatse_HTML .= "</table>";
 				return $Goatse_HTML;
 			}
+			
+			//===================================
+			//Make Holes
+			//===================================	
+			function ADT_Get_Offsets(){
+			rewind($this->ADT_Handle);
+                        
+			$ADT_FILE_DATA = bin2hex(fread($this->ADT_Handle,filesize($this->ADT_FileName)));
+			$ADT_NEW_FILE_DATA = "";
+
+			rewind($this->ADT_Handle);
+
+			for($i="0"; $i<strlen($ADT_FILE_DATA); $i=$i+4){
+				
+                            $ADT_NEW_FILE_DATA .=  strtoupper($this->EndianConverter(bin2hex(fread($this->ADT_Handle,4))));
+
+			}
+
+                                $this->NEW_OFFSETS = array();
+                                unset($this->NEW_OFFSETS[0]);
+                                
+				$this->NEW_OFFSETS["MTEX_Offset"] = stripos($ADT_NEW_FILE_DATA,$this->EndianConverter("5845544D"));
+				$this->NEW_OFFSETS["MMDX_Offset"] = $this->EndianConverter("58444D4D")." - 58444D4D";
+				$this->NEW_OFFSETS["MMID_Offset"] = stripos($ADT_NEW_FILE_DATA,$this->EndianConverter("44494D4"));
+				$this->NEW_OFFSETS["MWMO_Offset"] = stripos($ADT_NEW_FILE_DATA,$this->EndianConverter("4F4D574"));
+				$this->NEW_OFFSETS["MWID_Offset"] = stripos($ADT_NEW_FILE_DATA,$this->EndianConverter("4449574"));
+				$this->NEW_OFFSETS["MDDF_Offset"] = stripos($ADT_NEW_FILE_DATA,$this->EndianConverter("4644444"));
+				$this->NEW_OFFSETS["MODF_Offset"] = stripos($ADT_NEW_FILE_DATA,$this->EndianConverter("46444F4"));
+				$this->NEW_OFFSETS["MFBO_Offset"] = stripos($ADT_NEW_FILE_DATA,$this->EndianConverter("99999999"));//TO DO
+				$this->NEW_OFFSETS["MH2O_Offset"] = stripos($ADT_NEW_FILE_DATA,$this->EndianConverter("4F32484D"));
+				$this->NEW_OFFSETS["MTFX_Offset"] = stripos($ADT_NEW_FILE_DATA,$this->EndianConverter("99999999"));//TO DO
+                                $this->p_array($this->NEW_OFFSETS);
+                               // echo $ADT_NEW_FILE_DATA;
+
+			}
+			
 }
 
+$MyADT = new ADT();
+copy("../../maps/Azeroth_32_48.adt","../../maps/Azeroth_32_48 - copia.adt");
+$MyADT->ADT_Open("../../maps/Azeroth_32_48 - copia.adt");
+$MyADT->ADT_HeaderInfo();
 
+$MyADT->ADT_Get_Offsets();
 ?>
