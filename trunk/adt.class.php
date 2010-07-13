@@ -991,11 +991,5 @@ class ADT {
 			
 }
 
-$MyADT = new ADT();
-copy("../../maps/Kalimdor_1_1.adt","../../maps/Azeroth_32_48 - copia.adt");
-$MyADT->ADT_Open("../../maps/Azeroth_32_48 - copia.adt");
-$MyADT->ADT_HeaderInfo();
-
-$MyADT->ADT_OffsetFix(32,48);
 
 ?>
