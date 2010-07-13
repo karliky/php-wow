@@ -114,7 +114,9 @@ class ADT {
 				$this->STRUCT_INFO["MFBO_Offset"] = bin2hex(fread($this->ADT_Handle,4));
 				$this->STRUCT_INFO["MH2O_Offset"] = bin2hex(fread($this->ADT_Handle,4));
 				$this->STRUCT_INFO["MTFX_Offset"] = bin2hex(fread($this->ADT_Handle,4));
-                                $this->p_array($this->STRUCT_INFO);
+
+				if ($this->debug):	$this->p_array($this->STRUCT_INFO);  endif;
+
 		}
 		
 		//////////////////////////////////////////////
@@ -672,44 +674,42 @@ class ADT {
 			//===================================
 			//OffsetFix
 			//===================================	
-			function ADT_OffsetFix()
+			function ADT_OffsetFix($New_y,$New_x)
 			{
-				
-//Offset Type Description
-//0x3C uint32 holes in terrain
-//0x68 float Z' base coordinate
-//0x6C float X' base coordinate
-//0x70 float Y base coordinate
+
 				//MCIN
 				$this->MCIN_DATA = array(array());
-				fseek($this->ADT_Handle,92,SEEK_SET);						//MCIN HEADER
+				fseek($this->ADT_Handle,92,SEEK_SET);																	//MCIN HEADER
 				for($x = 0;$x<256;$x++){
 			
 				$this->MCIN_DATA[$x][OFFSET] = $this->EndianConverter(bin2hex(fread($this->ADT_Handle,4)));				// absolute offset.
-				$this->MCIN_DATA[$x][SIZE] = bin2hex(fread($this->ADT_Handle,4));				// the size of the MCNK chunk, this is refering to.
-				$this->MCIN_DATA[$x][UNUSED] = bin2hex(fread($this->ADT_Handle,4));				// these two are always 0. only set in the client.
+				$this->MCIN_DATA[$x][SIZE] = bin2hex(fread($this->ADT_Handle,4));										// the size of the MCNK chunk, this is refering to.
+				$this->MCIN_DATA[$x][UNUSED] = bin2hex(fread($this->ADT_Handle,4));										// these two are always 0. only set in the client.
 				$this->MCIN_DATA[$x][UNUSED1] = bin2hex(fread($this->ADT_Handle,4));	 		
 
-			}
+				}
 
 				//FIX MCNKs
 				for($i = 0;$i<256;$i++){
 					if($i == 0)
 					{
 					//Data that we will use later ._ .
+					$File_Y = $New_x;
+					$File_X = $New_y;
+					
 					$Offset = "0x".$this->MCIN_DATA[$i][OFFSET];
 					fseek($this->ADT_Handle,0x0+$Offset+0x68+8,SEEK_SET);
-					
-					$oldY = $this->hexToFloat($this->EndianConverter(bin2hex(fread($this->ADT_Handle,4))));
-					$oldX = $this->hexToFloat($this->EndianConverter(bin2hex(fread($this->ADT_Handle,4))));
 
-					$X=(1600.0*(32-32))/3.0-100.0*($i/16)/3.0;
-					$Y=(1600.0*(32-48))/3.0-100.0*($i%16)/3.0;
-				
+					$oldX = $this->hexToFloat($this->EndianConverter(bin2hex(fread($this->ADT_Handle,4))));
+					$oldY = $this->hexToFloat($this->EndianConverter(bin2hex(fread($this->ADT_Handle,4))));
+
+					$Y=(1600.0*(32-$File_Y))/3.0-100.0*($i/16)/3.0;
+					$X=(1600.0*(32-$File_X))/3.0-100.0*($i%16)/3.0;
+
 					//Its Reversed Remember
 					$X_Offset=$oldX-$X;
 					$Z_Offset=$oldY-$Y;
-					echo $X_Offset." ".$Z_Offset;
+
 					}
 					$Offset = "0x".$this->MCIN_DATA[$i][OFFSET];
 					fseek($this->ADT_Handle,0x0+$Offset+0x68+8,SEEK_SET);
@@ -736,7 +736,7 @@ class ADT {
 			$M2DATAZ = bin2hex(fread($this->ADT_Handle,4));
 			$Off_Z = $this->hexToFloat($this->EndianConverter($M2DATAZ));		//New Z	
 			fseek($this->ADT_Handle,-4,SEEK_CUR);
-			fwrite($this->ADT_Handle,pack("f",$Off_Z + 15),4);
+			fwrite($this->ADT_Handle,pack("f",$Off_Z),4);
 			
 			$M2DATAZ = bin2hex(fread($this->ADT_Handle,4));
 			$Off_Y = $this->hexToFloat($this->EndianConverter($M2DATAZ));		//New Y			
@@ -745,7 +745,57 @@ class ADT {
 
 			fseek($this->ADT_Handle,24,SEEK_CUR);
 			endfor;
-		}
+			//FIX WMO
+			$OFFVALUE = "0x".$this->EndianConverter($this->STRUCT_INFO["MODF_Offset"]);
+			fseek($this->ADT_Handle,0x14+0x04+$OFFVALUE,SEEK_SET);
+			
+			$NumWMO = hexdec("0x".$this->EndianConverter(bin2hex(fread($this->ADT_Handle,4))));
+			$NumWMO = $NumWMO/64;
+			fseek($this->ADT_Handle,0x08,SEEK_CUR);
+			for($x = 0;$x < $NumWMO;$x++):
+
+			$WMO_DATA = bin2hex(fread($this->ADT_Handle,4));						
+			$WMO_X = $this->hexToFloat($this->EndianConverter($WMO_DATA));
+			fseek($this->ADT_Handle,-4,SEEK_CUR);
+			fwrite($this->ADT_Handle,pack("f",$WMO_X + $X_Offset),4);
+			
+			fseek($this->ADT_Handle,4,SEEK_CUR); //Z
+
+			$WMO_DATA = bin2hex(fread($this->ADT_Handle,4));						
+			$WMO_Y = $this->hexToFloat($this->EndianConverter($WMO_DATA));
+			fseek($this->ADT_Handle,-4,SEEK_CUR);
+			fwrite($this->ADT_Handle,pack("f",$WMO_Y + $Z_Offset),4);
+	
+			fseek($this->ADT_Handle,12,SEEK_CUR); //Z
+	
+			$WMO_DATA = bin2hex(fread($this->ADT_Handle,4));						
+			$WMO_X = $this->hexToFloat($this->EndianConverter($WMO_DATA));
+			fseek($this->ADT_Handle,-4,SEEK_CUR);
+			fwrite($this->ADT_Handle,pack("f",$WMO_X + $X_Offset),4);
+			
+			fseek($this->ADT_Handle,4,SEEK_CUR); //Z
+
+			$WMO_DATA = bin2hex(fread($this->ADT_Handle,4));						
+			$WMO_Y = $this->hexToFloat($this->EndianConverter($WMO_DATA));
+			fseek($this->ADT_Handle,-4,SEEK_CUR);
+			fwrite($this->ADT_Handle,pack("f",$WMO_Y + $Z_Offset),4);
+	
+			$WMO_DATA = bin2hex(fread($this->ADT_Handle,4));						
+			$WMO_X = $this->hexToFloat($this->EndianConverter($WMO_DATA));
+			fseek($this->ADT_Handle,-4,SEEK_CUR);
+			fwrite($this->ADT_Handle,pack("f",$WMO_X + $X_Offset),4);
+			
+			fseek($this->ADT_Handle,4,SEEK_CUR); //Z
+
+			$WMO_DATA = bin2hex(fread($this->ADT_Handle,4));						
+			$WMO_Y = $this->hexToFloat($this->EndianConverter($WMO_DATA));
+			fseek($this->ADT_Handle,-4,SEEK_CUR);
+			fwrite($this->ADT_Handle,pack("f",$WMO_Y + $Z_Offset),4);
+	
+			fseek($this->ADT_Handle,16,SEEK_CUR);
+			endfor;
+			return true;
+			}
 			//===================================
 			//Make Holes
 			//===================================	
@@ -904,7 +954,7 @@ class ADT {
 			}
 			
 			//===================================
-			//Make Holes
+			//Update Offsets CURRENTLY BEING DEVELOPED!
 			//===================================	
 			function ADT_Get_Offsets(){
 			rewind($this->ADT_Handle);
@@ -933,6 +983,7 @@ class ADT {
 				$this->NEW_OFFSETS["MFBO_Offset"] = stripos($ADT_NEW_FILE_DATA,$this->EndianConverter("99999999"));//TO DO
 				$this->NEW_OFFSETS["MH2O_Offset"] = stripos($ADT_NEW_FILE_DATA,$this->EndianConverter("4F32484D"));
 				$this->NEW_OFFSETS["MTFX_Offset"] = stripos($ADT_NEW_FILE_DATA,$this->EndianConverter("99999999"));//TO DO
+				
                                 $this->p_array($this->NEW_OFFSETS);
                                // echo $ADT_NEW_FILE_DATA;
 
@@ -941,9 +992,10 @@ class ADT {
 }
 
 $MyADT = new ADT();
-copy("../../maps/Azeroth_32_48.adt","../../maps/Azeroth_32_48 - copia.adt");
+copy("../../maps/Kalimdor_1_1.adt","../../maps/Azeroth_32_48 - copia.adt");
 $MyADT->ADT_Open("../../maps/Azeroth_32_48 - copia.adt");
 $MyADT->ADT_HeaderInfo();
 
-$MyADT->ADT_Get_Offsets();
+$MyADT->ADT_OffsetFix(32,48);
+
 ?>
