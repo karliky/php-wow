@@ -219,13 +219,13 @@ class WDT {
 														//New ADT
 														fwrite($this->WDT_Handle,pack("V",1),4);
 														bin2hex(fread($this->WDT_Handle,4));
-														echo "New location added at Y: $i X: $x<br>";
+														echo "Kalimdor_".$i."_".$x.".adt<br>";
 
 												}else{
 														
 														fwrite($this->WDT_Handle,pack("V",0),4);
 														bin2hex(fread($this->WDT_Handle,4));
-														echo "Location deleted at Y: $i X: $x<br>";
+														//echo "Location deleted at Y: $i X: $x<br>";
 												}
 												}else{
 														bin2hex(fread($this->WDT_Handle,4));
@@ -242,7 +242,7 @@ class WDT {
 }
 
 $MyWDT = new WDT();
-$MyWDT->WDT_Open("Kalimdor.wdt");
+$MyWDT->WDT_Open("../../wdt/Kalimdor.wdt");
 if(isset($_GET['i']) & isset($_GET['x'])){
 $MyWDT->WDT_Update();
 }else{
