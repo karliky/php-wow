@@ -717,6 +717,12 @@ class ADT {
 					$X=(1600.0*(32-48))/3.0-100.0*($i%16)/3.0;
 					fwrite($this->ADT_Handle,pack("f",$Y),4);
 					fwrite($this->ADT_Handle,pack("f",$X),4);
+					/*
+					$ActualZ = $this->hexToFloat($this->EndianConverter(bin2hex(fread($this->ADT_Handle,4))));
+					if ($ActualZ < -1){
+					fseek($this->ADT_Handle,-4,SEEK_CUR);
+					fwrite($this->ADT_Handle,pack("f",0),4);
+					}*/
 				}
 				
 			//FIX M2
@@ -987,6 +993,43 @@ class ADT {
                                 $this->p_array($this->NEW_OFFSETS);
                                // echo $ADT_NEW_FILE_DATA;
 
+			}
+			//===================================
+			//Fix Z Terrain CURRENTLY BEING DEVELOPED!
+			//===================================	
+			function fix_terrain(){
+				
+				//MCIN
+				$this->MCIN_DATA = array(array());
+				fseek($this->ADT_Handle,92,SEEK_SET);																	//MCIN HEADER
+				for($x = 0;$x<256;$x++){
+			
+				$this->MCIN_DATA[$x][OFFSET] = $this->EndianConverter(bin2hex(fread($this->ADT_Handle,4)));				// absolute offset.
+				$this->MCIN_DATA[$x][SIZE] = bin2hex(fread($this->ADT_Handle,4));										// the size of the MCNK chunk, this is refering to.
+				$this->MCIN_DATA[$x][UNUSED] = bin2hex(fread($this->ADT_Handle,4));										// these two are always 0. only set in the client.
+				$this->MCIN_DATA[$x][UNUSED1] = bin2hex(fread($this->ADT_Handle,4));	 		
+
+				}
+
+				//FIX MCNKs
+
+				for($i = 0;$i<256;$i++){
+
+					$Offset = "0x".$this->MCIN_DATA[$i][OFFSET];
+					$OffHeight = fseek($this->ADT_Handle,0x0+$Offset+8+0x014,SEEK_SET); // MCVT
+					$OffHeight = hexdec($this->EndianConverter(bin2hex(fread($this->ADT_Handle,4))));	
+					fseek($this->ADT_Handle,0x0+$Offset+8+$OffHeight,SEEK_SET);
+					
+					for($x = 0;$x<145;$x++){
+					
+					$ActualZ = $this->hexToFloat($this->EndianConverter(bin2hex(fread($this->ADT_Handle,4))));
+					if ($ActualZ < 0){
+						fseek($this->ADT_Handle,-4,SEEK_CUR);
+						fwrite($this->ADT_Handle,pack("f",0),4);
+					}
+					
+					}
+				}
 			}
 			
 }
