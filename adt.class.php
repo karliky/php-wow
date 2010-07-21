@@ -997,7 +997,7 @@ class ADT {
 			//===================================
 			//Fix Z Terrain CURRENTLY BEING DEVELOPED!
 			//===================================	
-			function fix_terrain(){
+			function ADT_Terrain_UP($THIS_IS_THE_DATA,$UP_OR_DOWN){
 				
 				//MCIN
 				$this->MCIN_DATA = array(array());
@@ -1022,17 +1022,19 @@ class ADT {
 					
 					for($x = 0;$x<145;$x++){
 					
-					$ActualZ = $this->hexToFloat($this->EndianConverter(bin2hex(fread($this->ADT_Handle,4))));
-					if ($ActualZ < 0){
+						$ActualZ = $this->hexToFloat($this->EndianConverter(bin2hex(fread($this->ADT_Handle,4))));
+						if ($UP_OR_DOWN == "up"){
 						fseek($this->ADT_Handle,-4,SEEK_CUR);
-						fwrite($this->ADT_Handle,pack("f",0),4);
-					}
+						fwrite($this->ADT_Handle,pack("f",$ActualZ + $THIS_IS_THE_DATA),4);
+						}elseif($UP_OR_DOWN == "down"){
+						fseek($this->ADT_Handle,-4,SEEK_CUR);
+						fwrite($this->ADT_Handle,pack("f",$ActualZ - $THIS_IS_THE_DATA),4);
+						}
 					
 					}
 				}
 			}
 			
 }
-
 
 ?>
