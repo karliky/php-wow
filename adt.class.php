@@ -500,74 +500,85 @@ class ADT {
 			//===================================
 			function ADT_MH2O_InfoBlock()
 			{
-				$OFFVALUE = "0x".$this->EndianConverter($this->STRUCT_INFO["MH2O_Offset"]);
-				$NumWater = 256;
-				$this->WATER_DATAZ_BLOCK = array(array());// Get offsets
+                                $OFFVALUE = "0x".$this->EndianConverter($this->STRUCT_INFO["MH2O_Offset"]);
+                                $NumWater = 256;
+                                $this->WATER_DATAZ_BLOCK = array(array());// Get offsets
 
-				for($x = 0;$x < $NumWater;$x++):
-				if($this->WATER_DATAZ[$x][WATER_OFFSET][1] == 0){
-				///There are not water!._ .
-				}else{
-				
-				//MH2O_Information
-                fseek($this->ADT_Handle,0x14+0x04+$OFFVALUE+0x4+$this->WATER_DATAZ[$x][WATER_OFFSET][1],SEEK_SET);
-				//HeightLevel
-				fread($this->ADT_Handle,0x4);
-				$Height_Level = bin2hex(fread($this->ADT_Handle,4));//UNUSED			
-				$Height_Level = bin2hex(fread($this->ADT_Handle,4));//UNUSED				
-				//HeightLevel
-				$Byte_Data = bin2hex(fread($this->ADT_Handle,1));	
-				$xOffset =  hexdec($this->EndianConverter($Byte_Data));
-				$Byte_Data = bin2hex(fread($this->ADT_Handle,1));
-				$iOffset =  hexdec($this->EndianConverter($Byte_Data));
-				$Byte_Data = bin2hex(fread($this->ADT_Handle,1));
-				$widht =  hexdec($this->EndianConverter($Byte_Data))+ 1;
-				$Byte_Data = bin2hex(fread($this->ADT_Handle,1));
-				$height =  hexdec($this->EndianConverter($Byte_Data))+ 1;
-				//
-				fread($this->ADT_Handle,4);
-				$Height_Offset = unpack('V',fread($this->ADT_Handle,4));	//Unpack returns an array so be careful
-				
-				//MH2O_HeightmapData
-					fseek($this->ADT_Handle,0x14+0x04+$OFFVALUE+0x4+$Height_Offset[1],SEEK_SET);	//Seek at the water level
-				//Parte wapah
-				$Total_Floats = $widht*$height;
-				
-				for($i = 0;$i<$Total_Floats;$i++){
-								
-					$Height_Level = bin2hex(fread($this->ADT_Handle,4));
-					$this->WATER_DATAZ_BLOCK[$x]["WaterLVL"] = $this->hexToFloat($this->EndianConverter($Height_Level));
-				
-				}
-				
-				}
-				endfor;
-				return $this->WATER_DATAZ_BLOCK;
+                                for($x = 0;$x < $NumWater;$x++):
+                                if($this->WATER_DATAZ[$x][WATER_OFFSET][1] == 0){
+                                ///There are not water!._ .
+                                }else{
+                                
+                                //MH2O_Information
+                				fseek($this->ADT_Handle,0x14+0x04+$OFFVALUE+0x4+$this->WATER_DATAZ[$x][WATER_OFFSET][1],SEEK_SET);
+                                //HeightLevel
+                                fread($this->ADT_Handle,0x4);
+                                $Height_Level = bin2hex(fread($this->ADT_Handle,4));//UNUSED                    
+                                $Height_Level = bin2hex(fread($this->ADT_Handle,4));//UNUSED                            
+                                //HeightLevel
+                                $Byte_Data = bin2hex(fread($this->ADT_Handle,1));       
+                                $xOffset =  hexdec($this->EndianConverter($Byte_Data));
+                                $Byte_Data = bin2hex(fread($this->ADT_Handle,1));
+                                $iOffset =  hexdec($this->EndianConverter($Byte_Data));
+                                $Byte_Data = bin2hex(fread($this->ADT_Handle,1));
+                                $widht =  hexdec($this->EndianConverter($Byte_Data))+ 1;
+                                $Byte_Data = bin2hex(fread($this->ADT_Handle,1));
+                                $height =  hexdec($this->EndianConverter($Byte_Data))+ 1;
+                                //
+                                fread($this->ADT_Handle,4);
+                                $Height_Offset = unpack('V',fread($this->ADT_Handle,4));        //Unpack returns an array so be careful
+                                
+                                //MH2O_HeightmapData
+                                        fseek($this->ADT_Handle,0x14+0x04+$OFFVALUE+0x4+$Height_Offset[1],SEEK_SET);    //Seek at the water level
+                                //Parte wapah
+                                $Total_Floats = $widht*$height;
+                                
+                                for($i = 0;$i<$Total_Floats;$i++){
+                                                                
+                                        $Height_Level = bin2hex(fread($this->ADT_Handle,4));
+                                        $this->WATER_DATAZ_BLOCK[$x]["WaterLVL"] = $this->hexToFloat($this->EndianConverter($Height_Level));
+                                
+                                }
+                                
+                                }
+                                endfor;
+                                return $this->WATER_DATAZ_BLOCK;
+
 			}
 			//===================================
 			//ADT MH2O Set Water Level
 			//===================================
-			function ADT_MH2O_Set_Water_level($Level)
+			function ADT_MH2O_Set_Water_level($UP_OR_DOWN,$Level)
 			{
 				$OFFVALUE = "0x".$this->EndianConverter($this->STRUCT_INFO["MH2O_Offset"]);
 				$NumWater = 256;
-
+				$this->ADT_MH2O_info();
 				for($x = 0;$x < $NumWater;$x++):
 				if($this->WATER_DATAZ[$x][WATER_OFFSET][1] == 0){
 				///There are not water!._ .
 				}else{
-				
 				//MH2O_Information
                 fseek($this->ADT_Handle,0x14+0x04+$OFFVALUE+0x4+$this->WATER_DATAZ[$x][WATER_OFFSET][1],SEEK_SET);
 				//HeightLevel
-				fread($this->ADT_Handle,0x4);
-				$Height_Level = bin2hex(fread($this->ADT_Handle,4));
-				fseek($this->ADT_Handle,-4,SEEK_CUR);
-				fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) + $Level),4);			//Ocean	
-				$Height_Level = bin2hex(fread($this->ADT_Handle,4));
-				fseek($this->ADT_Handle,-4,SEEK_CUR);
-				fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) + $Level),4);			//Ocean
-				//HeightLevel
+									fread($this->ADT_Handle,0x4);
+				if ($UP_OR_DOWN == "up"){
+
+					$Height_Level = bin2hex(fread($this->ADT_Handle,4));
+					fseek($this->ADT_Handle,-4,SEEK_CUR);
+					fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) + $Level),4);			//Ocean	
+					$Height_Level = bin2hex(fread($this->ADT_Handle,4));
+					fseek($this->ADT_Handle,-4,SEEK_CUR);
+					fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) + $Level),4);			//Ocean
+				}elseif($UP_OR_DOWN == "down"){
+					
+					$Height_Level = bin2hex(fread($this->ADT_Handle,4));
+					fseek($this->ADT_Handle,-4,SEEK_CUR);
+					fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) - $Level),4);			//Ocean	
+					$Height_Level = bin2hex(fread($this->ADT_Handle,4));
+					fseek($this->ADT_Handle,-4,SEEK_CUR);
+					fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) - $Level),4);			//Ocean
+					}
+				//Fuckingdataz
 				$Byte_Data = bin2hex(fread($this->ADT_Handle,1));	
 				$xOffset =  hexdec($this->EndianConverter($Byte_Data));
 				$Byte_Data = bin2hex(fread($this->ADT_Handle,1));
@@ -584,12 +595,17 @@ class ADT {
 				fseek($this->ADT_Handle,0x14+0x04+$OFFVALUE+0x4+$Height_Offset[1],SEEK_SET);	//Seek at the water level
 				//Parte wapah
 				$Total_Floats = $widht*$height;
+				
 				for($i = 0;$i<$Total_Floats;$i++){
-
-				$Height_Level = bin2hex(fread($this->ADT_Handle,4));
-				fseek($this->ADT_Handle,-4,SEEK_CUR);
-				fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) + $Level),4);
-
+				if ($UP_OR_DOWN == "up"){
+					$Height_Level = bin2hex(fread($this->ADT_Handle,4));
+					fseek($this->ADT_Handle,-4,SEEK_CUR);
+					fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) + $Level),4);
+				}elseif($UP_OR_DOWN == "down"){
+					$Height_Level = bin2hex(fread($this->ADT_Handle,4));
+					fseek($this->ADT_Handle,-4,SEEK_CUR);
+					fwrite($this->ADT_Handle,pack("f",$this->hexToFloat($this->EndianConverter($Height_Level)) - $Level),4);
+				}
 			
 				}
 				
@@ -828,11 +844,11 @@ class ADT {
 							if($HaChunk == 0){
 								fseek($this->ADT_Handle,-4,SEEK_CUR);
 								fwrite($this->ADT_Handle,pack("V",65535),4); //65535 biggest number from unsigned short will make an entire hole
-								echo "You Goatse this chunk!<br>";
+								echo "You've Goatse this chunk!<br>";
 							}else{
 								fseek($this->ADT_Handle,-4,SEEK_CUR);
 								fwrite($this->ADT_Handle,pack("V",0),4);
-								echo "You fixed this chunk!<br>";
+								echo "You've fixed this chunk!<br>";
 							}
 						}
 					}
@@ -1036,5 +1052,6 @@ class ADT {
 			}
 			
 }
+
 
 ?>

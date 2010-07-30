@@ -82,7 +82,8 @@ class WDT {
 		function WDT_Open($WDT_Handle){
 			  if(($this->WDT_Handle = fopen($WDT_Handle, "r+b")) === FALSE)	//Read/Write binary mode
 			  { die("Can't open the filez!!!!11 ._ ."); }
-			  $this->WDT_Name = explode(".",$WDT_Handle);
+			  $this->WDT_Name = explode("wdt/",$WDT_Handle);
+			  $this->WDT_Name[1] = str_replace(".wdt","",$this->WDT_Name[1]);
 		}
 		//===================================
 		//WDT SHOW INFO
@@ -119,7 +120,7 @@ class WDT {
 						
 						if($this->WDT_Info[$x][$i] == 00000000){
 						}else{
-						$WDT_HTML .= '$("#X'.$x."Y".$i.'").simpletip({ content: "'.$this->WDT_Name[0].'_'.$i."_".$x.'.adt", fixed: true });';
+						$WDT_HTML .= '$("#X'.$x."Y".$i.'").simpletip({ content: "'.$this->WDT_Name[1].'_'.$i."_".$x.'.adt", fixed: true });';
 
 						}
 					}
@@ -142,7 +143,7 @@ class WDT {
 							$WDT_HTML .= '}';
 							$WDT_HTML .= 'else {';
 							$WDT_HTML .= "$('#X".$x."Y".$i."').removeClass('grey').addClass('blue');";
-							$WDT_HTML .= '$("#X'.$x."Y".$i.'").simpletip({ content: "'.$this->WDT_Name[0].'_'.$i."_".$x.'.adt", fixed: true });';
+							$WDT_HTML .= '$("#X'.$x."Y".$i.'").simpletip({ content: "'.$this->WDT_Name[1].'_'.$i."_".$x.'.adt", fixed: true });';
 							$WDT_HTML .= '}';
 
 							$WDT_HTML .= '});';
@@ -219,13 +220,13 @@ class WDT {
 														//New ADT
 														fwrite($this->WDT_Handle,pack("V",1),4);
 														bin2hex(fread($this->WDT_Handle,4));
-														echo "Kalimdor_".$i."_".$x.".adt<br>";
+														echo "Location added at Y: $i X: $x<br>";
 
 												}else{
 														
 														fwrite($this->WDT_Handle,pack("V",0),4);
 														bin2hex(fread($this->WDT_Handle,4));
-														//echo "Location deleted at Y: $i X: $x<br>";
+														echo "Location deleted at Y: $i X: $x<br>";
 												}
 												}else{
 														bin2hex(fread($this->WDT_Handle,4));
@@ -242,7 +243,7 @@ class WDT {
 }
 
 $MyWDT = new WDT();
-$MyWDT->WDT_Open("../../wdt/Kalimdor.wdt");
+$MyWDT->WDT_Open("../../wdt/Azeroth.wdt");
 if(isset($_GET['i']) & isset($_GET['x'])){
 $MyWDT->WDT_Update();
 }else{
