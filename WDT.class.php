@@ -1,4 +1,4 @@
-<?
+<?php
 /*
     <WDT Class | An PHP class for editing world of warcraft WDT Files>
     Copyright (C) <2010>  <BugCraft> Also Karliky (karliky@gmail.com)
@@ -41,9 +41,9 @@ class WDT {
 			print_r($array);
 			echo "</pre>";
 		}
-		
+
 		private function hexToFloat($hex){
-			//convert 32bit HEX values into IEEE 754 floating point 
+			//convert 32bit HEX values into IEEE 754 floating point
 				if($hex == "00000000")
 				{
 					return "0.000000";
@@ -52,10 +52,10 @@ class WDT {
 			$sign = $bin[0];
 			$exp = bindec(substr($bin, 1, 8)) - 127;
 			$man = (2 << 22) + bindec(substr($bin, 9, 23));
-			
-			return $dec = $man * pow(2, $exp - 23) * ($sign ? -1 : 1); 
+
+			return $dec = $man * pow(2, $exp - 23) * ($sign ? -1 : 1);
 		}
-		
+
 		private function hexToStr($hex)
 		{
 			//Hexadecimal to string
@@ -78,36 +78,37 @@ class WDT {
 		//////////////////////////////////////////////
 		//WDT initializacion functions
 		//////////////////////////////////////////////
-		//////////////////////////////////////////////		
+		//////////////////////////////////////////////
 		function WDT_Open($WDT_Handle){
 			  if(($this->WDT_Handle = fopen($WDT_Handle, "r+b")) === FALSE)	//Read/Write binary mode
 			  { die("Can't open the filez!!!!11 ._ ."); }
-			  $this->WDT_Name = explode("wdt/",$WDT_Handle);
-			  $this->WDT_Name[1] = str_replace(".wdt","",$this->WDT_Name[1]);
+			  $this->WDT_Name = explode(".wdt",$WDT_Handle);
+				var_dump($this->WDT_Name);
+			  $this->WDT_Name[1] = str_replace(".wdt","",$this->WDT_Name[0]);
 		}
 		//===================================
 		//WDT SHOW INFO
 		//===================================
 		function WDT_Show(){
-		
+
 		fseek($this->WDT_Handle,0x3C,SEEK_SET);
 		$this->WDT_Info = array(array());
 		for($x = 0;$x < 4096;$x++){
 
-				for($i = 0;$i < 64;$i++){	
-				$WDT_DATAZ = bin2hex(fread($this->WDT_Handle,4));						
-				$this->WDT_Info[$x][$i] = $this->EndianConverter($WDT_DATAZ);	
-				bin2hex(fread($this->WDT_Handle,4));		
+				for($i = 0;$i < 64;$i++){
+					$WDT_DATAZ = bin2hex(fread($this->WDT_Handle,4));
+					$this->WDT_Info[$x][$i] = $this->EndianConverter($WDT_DATAZ);
+					bin2hex(fread($this->WDT_Handle,4));
 				}
-				
+
 
 		}
-
+		//var_dump($this->WDT_Info);
 #
 			$WDT_HTML = '<link rel="stylesheet" href="css/ui-lightness/jquery-ui-1.8.2.custom.css" type="text/css" media="screen" />';
 			$WDT_HTML .= '<script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>';
 			$WDT_HTML .= '<script type="text/javascript" src="js/jquery-ui-1.8.2.custom.min.js"></script>';
-			$WDT_HTML .= '<script type="text/javascript" src="js/jquery.simpletip-1.3.1.pack.js"></script>';
+			$WDT_HTML .= '<script type="text/javascript" src="jquery.simpletip-1.3.1.pack.js"></script>';
 
 			$WDT_HTML .= '<script type="text/javascript">';
 			$WDT_HTML .= '	$(function() {';
@@ -115,10 +116,10 @@ class WDT {
 			$WDT_HTML .= '		$("#dialog").dialog( "option", "position", ["center","top"]  );';
 			$WDT_HTML .= '		$("#dialog").dialog( "option", "title", "WDT Information" );';
 			$WDT_HTML .= '		$("#dialog").dialog( "option", "width", 310 );';
-			for($x = 1;$x < 65;$x++){
-					for($i = 1;$i < 65;$i++){
-						
-						if($this->WDT_Info[$x][$i] == 00000000){
+			for($x = 0;$x < 64;$x++){
+					for($i = 0;$i < 64;$i++){
+
+						if(@$this->WDT_Info[$x][$i] == 00000002){
 						}else{
 						$WDT_HTML .= '$("#X'.$x."Y".$i.'").simpletip({ content: "'.$this->WDT_Name[1].'_'.$i."_".$x.'.adt", fixed: true });';
 
@@ -131,7 +132,7 @@ class WDT {
 					for($i = 1;$i < 65;$i++){
 
 							$WDT_HTML .= '$("#X'.$x."Y".$i.'").click(function(){';
-							
+
 							$WDT_HTML .= '$.get("WDT.class.php?i='.$i.'&x='.$x.'", function(data) {';
 							$WDT_HTML .= '$("#prueba").append(data);';
 							$WDT_HTML .= '});';
@@ -180,15 +181,16 @@ class WDT {
 					}
 				 }
 				</style>';
-			$WDT_HTML .= '<style type="text/css"> body{ background-color:#000000;}</style>';		
-			
-			$WDT_HTML .= '<div id="dialog"><div id="prueba"></div></div>';		
+			$WDT_HTML .= '<style type="text/css"> body{ background-color:#000000;}</style>';
+
+			$WDT_HTML .= '<div id="dialog"><div id="prueba"></div></div>';
 			$WDT_HTML .= '<table width="100%" height="75%" border="0" cellspacing="0" cellpadding="1">';
-			
+
 				for($x = 1;$x < 65;$x++){
 						$WDT_HTML .= '<tr>';
 						for($i = 1;$i < 65;$i++){
-						if($this->WDT_Info[$x][$i] == 00000000){
+
+						if(@$this->WDT_Info[$x][$i] == 00000002){
 						$BACKGOUND = 'class="grey"';
 						}else{
 						$BACKGOUND = 'class="blue"';
@@ -208,13 +210,13 @@ class WDT {
 		function WDT_Update(){
 								fseek($this->WDT_Handle,0x3C,SEEK_SET);
 								for($x = 0;$x < 4096;$x++){
-						
-										for($i = 0;$i < 64;$i++){	
+
+										for($i = 0;$i < 64;$i++){
 
 												if($_GET['i'] == $i && $_GET['x'] == $x)
 												{
-												
-												$WDT_DATAZ = bin2hex(fread($this->WDT_Handle,4));						
+
+												$WDT_DATAZ = bin2hex(fread($this->WDT_Handle,4));
 												fseek($this->WDT_Handle,-4,SEEK_CUR);
 												if($this->EndianConverter($WDT_DATAZ) == 00000000){
 														//New ADT
@@ -223,30 +225,21 @@ class WDT {
 														echo "Location added at Y: $i X: $x<br>";
 
 												}else{
-														
+
 														fwrite($this->WDT_Handle,pack("V",0),4);
 														bin2hex(fread($this->WDT_Handle,4));
 														echo "Location deleted at Y: $i X: $x<br>";
 												}
 												}else{
 														bin2hex(fread($this->WDT_Handle,4));
-														bin2hex(fread($this->WDT_Handle,4));		
+														bin2hex(fread($this->WDT_Handle,4));
 												}
-												
-											}	
+
+											}
 										}
-										
-						
-								
 
 		}
 }
 
-$MyWDT = new WDT();
-$MyWDT->WDT_Open("../../wdt/Azeroth.wdt");
-if(isset($_GET['i']) & isset($_GET['x'])){
-$MyWDT->WDT_Update();
-}else{
-$MyWDT->WDT_Show();
-}
+
 ?>
